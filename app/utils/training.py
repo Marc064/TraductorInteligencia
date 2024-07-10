@@ -1,9 +1,9 @@
+import os
 import torch
 from tqdm import tqdm
 from app.models import model, tokenizer, device
 from app.utils.data import load_data
 from app.utils.checkpoint import save_checkpoint, load_checkpoint
-import os
 
 SOURCE_LEN = 128
 TARGET_LEN = 128

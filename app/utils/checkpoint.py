@@ -1,9 +1,7 @@
-import os
 import torch
 
 def save_checkpoint(model, optimizer, epoch, loss, checkpoint_dir='checkpoints'):
-    os.makedirs(checkpoint_dir, exist_ok=True)
-    checkpoint_path = os.path.join(checkpoint_dir, f'checkpoint_epoch_{epoch}.pth')
+    checkpoint_path = f"{checkpoint_dir}/model_epoch_{epoch}.pth"
     torch.save({
         'epoch': epoch,
         'model_state_dict': model.state_dict(),
@@ -18,5 +16,5 @@ def load_checkpoint(model, optimizer, checkpoint_path):
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     epoch = checkpoint['epoch']
     loss = checkpoint['loss']
-    print(f'Checkpoint loaded from {checkpoint_path}')
+    print(f'Checkpoint loaded from {checkpoint_path}, epoch {epoch}, loss {loss}')
     return epoch, loss

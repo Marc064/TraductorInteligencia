@@ -1,29 +1,24 @@
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 import torch
+from transformers import T5Tokenizer
 
 class TranslationDataset(Dataset):
-    def __init__(self, dataframe, tokenizer, source_len, target_len):
+    def __init__(self, data, tokenizer, source_len, target_len):
         self.tokenizer = tokenizer
-        self.data = dataframe
+        self.data = data
         self.source_len = source_len
         self.target_len = target_len
-        self.source_text = self.data.Spanish
-        self.target_text = self.data.English
 
     def __len__(self):
-        return len(self.target_text)
+        return len(self.data)
 
     def __getitem__(self, index):
-        source_text = str(self.source_text[index])
-        target_text = str(self.target_text[index])
+        source_text = str(self.data.iloc[index, 1])
+        target_text = str(self.data.iloc[index, 2])
 
-        source = self.tokenizer.batch_encode_plus(
-            [source_text], max_length=self.source_len, padding='max_length', truncation=True, return_tensors="pt"
-        )
-        target = self.tokenizer.batch_encode_plus(
-            [target_text], max_length=self.target_len, padding='max_length', truncation=True, return_tensors="pt"
-        )
+        source = self.tokenizer.batch_encode_plus([source_text], max_length=self.source_len, padding='max_length', truncation=True, return_tensors='pt')
+        target = self.tokenizer.batch_encode_plus([target_text], max_length=self.target_len, padding='max_length', truncation=True, return_tensors='pt')
 
         source_ids = source['input_ids'].squeeze()
         source_mask = source['attention_mask'].squeeze()
@@ -38,16 +33,24 @@ class TranslationDataset(Dataset):
         }
 
 def load_data(tokenizer, source_len, target_len, train_batch_size, valid_batch_size):
-    df = pd.read_csv('data/spanish-to-english.csv')
+    df = pd.read_csv('data/translations.csv')
 
-    valid_data = df.sample(frac=0.5, random_state=42)
-    train_data = df.drop(valid_data.index).reset_index(drop=True)
-    valid_data = valid_data.reset_index(drop=True)
+    train_size = 0.8
+    train_dataset = df.sample(frac=train_size, random_state=42)
+    val_dataset = df.drop(train_dataset.index).reset_index(drop=True)
+    train_dataset = train_dataset.reset_index(drop=True)
 
-    train_dataset = TranslationDataset(train_data, tokenizer, source_len, target_len)
-    valid_dataset = TranslationDataset(valid_data, tokenizer, source_len, target_len)
+    print("FULL Dataset: {}".format(df.shape))
+    print("TRAIN Dataset: {}".format(train_dataset.shape))
+    print("VALIDATION Dataset: {}".format(val_dataset.shape))
 
-    train_loader = DataLoader(train_dataset, batch_size=train_batch_size, shuffle=True, num_workers=0)
-    valid_loader = DataLoader(valid_dataset, batch_size=valid_batch_size, shuffle=False, num_workers=0)
+    training_set = TranslationDataset(train_dataset, tokenizer, source_len, target_len)
+    val_set = TranslationDataset(val_dataset, tokenizer, source_len, target_len)
 
-    return train_loader, valid_loader
+    train_params = {'batch_size': train_batch_size, 'shuffle': True, 'num_workers': 0}
+    val_params = {'batch_size': valid_batch_size, 'shuffle': False, 'num_workers': 0}
+
+    train_loader = DataLoader(training_set, **train_params)
+    val_loader = DataLoader(val_set, **val_params)
+
+    return train_loader, val_loader
