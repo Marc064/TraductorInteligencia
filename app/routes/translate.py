@@ -1,17 +1,15 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
 from app.models import model, tokenizer, device
 from app.utils.training import train_model
+from app.schemas.translation import TranslationRequest
 
 router = APIRouter()
 
-class TranslationRequest(BaseModel):
-    text: str
 
 @router.post("/api/train", response_model=dict)
 async def train():
     train_model()
-    return {"message": "Training susses"}
+    return {"message": "Training started"}
 
 @router.post("/translate/")
 async def translate_text(request: TranslationRequest):
