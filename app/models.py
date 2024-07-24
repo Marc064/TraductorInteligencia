@@ -15,5 +15,6 @@ if os.path.exists(checkpoint_dir):
     if checkpoint_files:
         latest_checkpoint = max(checkpoint_files, key=lambda f: int(f.split('_')[-1].split('.')[0]))
         checkpoint_path = os.path.join(checkpoint_dir, latest_checkpoint)
-        model.load_state_dict(torch.load(checkpoint_path))
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+        model.load_state_dict(checkpoint['model_state_dict'])
         print(f"Loaded model from {checkpoint_path}")

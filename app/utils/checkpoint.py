@@ -10,6 +10,7 @@ def save_checkpoint(model, optimizer, epoch, loss, checkpoint_dir='checkpoints')
     }, checkpoint_path)
     print(f'Checkpoint saved at {checkpoint_path}')
 
+
 def load_checkpoint(model, optimizer, checkpoint_path):
     checkpoint = torch.load(checkpoint_path)
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -18,3 +19,5 @@ def load_checkpoint(model, optimizer, checkpoint_path):
     loss = checkpoint['loss']
     print(f'Checkpoint loaded from {checkpoint_path}, epoch {epoch}, loss {loss}')
     return epoch, loss
+
+

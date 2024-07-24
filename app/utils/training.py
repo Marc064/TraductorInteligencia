@@ -5,12 +5,12 @@ from app.utils.data import load_data
 from app.utils.checkpoint import save_checkpoint, load_checkpoint
 import os
 
-SOURCE_LEN = 128
-TARGET_LEN = 128
+SOURCE_LEN = 512
+TARGET_LEN = 512
 TRAIN_BATCH_SIZE = 8
 VALID_BATCH_SIZE = 8
 LEARNING_RATE = 1e-4
-MAX_EPOCHS = 5
+MAX_EPOCHS = 3
 EARLY_STOPPING_PATIENCE = 2
 
 def train_model():
@@ -56,13 +56,16 @@ def train_model():
         total_valid_loss = 0
         with torch.no_grad():
             for batch in tqdm(valid_loader, desc=f"Validation Epoch {epoch+1}"):
-                input_ids = batch['source_ids'].to(device, dtype=torch.long)
-                attention_mask = batch['source_mask'].to(device, dtype=torch.long)
-                labels = batch['target_ids'].to(device, dtype=torch.long)
+                try:
+                    input_ids = batch['source_ids'].to(device, dtype=torch.long)
+                    attention_mask = batch['source_mask'].to(device, dtype=torch.long)
+                    labels = batch['target_ids'].to(device, dtype=torch.long)
 
-                outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
-                loss = outputs.loss
-                total_valid_loss += loss.item()
+                    outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+                    loss = outputs.loss
+                    total_valid_loss += loss.item()
+                except Exception as e:
+                    print(f"Validation error at batch {batch}: {e}")
 
         avg_valid_loss = total_valid_loss / len(valid_loader)
         print(f"Validation Loss for Epoch {epoch+1}: {avg_valid_loss}")

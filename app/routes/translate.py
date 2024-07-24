@@ -9,12 +9,12 @@ router = APIRouter()
 @router.post("/api/train", response_model=dict)
 async def train():
     train_model()
-    return {"message": "Training started"}
+    return {"message": "Training finished"}
 
 @router.post("/translate/")
 async def translate_text(request: TranslationRequest):
     input_text = "translate Spanish to English: " + request.text
     input_ids = tokenizer.encode(input_text, return_tensors="pt").to(device)
-    outputs = model.generate(input_ids)
+    outputs = model.generate(input_ids, max_length=512, num_beams=4, early_stopping=True)
     translated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     return {"translated_text": translated_text}
